@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Martian Robots :: Ridwaan Maharaj</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        #output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            min-height: 200px;
+            margin-top: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .grid-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        #grid {
+            border: 3px solid #34495e;
+            background: #1a2530;
+            display: inline-block;
+        }
+
+        .grid-cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #2c3e50;
+            display: inline-block;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .robot {
+            color: #e74c3c;
+            font-size: 18px;
+        }
+
+        .scent {
+            background-color: rgba(231, 76, 60, 0.3);
+        }
+
+        .coordinates {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .instructions {
+            margin-top: 20px;
+        }
+
+        .instruction {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #3498db;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 5px;
+            margin: 2px;
+            font-weight: bold;
+        }
+
+        .instruction.active {
+            background: #e74c3c;
+            transform: scale(1.1);
+        }
+
+        .lost {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #34495e;
+            color: white;
+        }
+
+        .example {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f1f2f6;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .example h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .example pre {
+            background: #2c3e50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .test-panel {
+            grid-column: 1 / -1;
+        }
+
+        .test-results {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .test-pass {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .test-fail {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🪐 Martian Robots</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Input</h2>
+            <textarea id="input" placeholder="Enter input data here...">5 3
+1 1 E
+RFRFRFRF
+3 2 N
+FRRFLLFFRRFLL
+0 3 W
+LLFFFLFLFL</textarea>
+            
+            <button id="runBtn">Run Simulation</button>
+            <button id="resetBtn">Reset</button>
+            <button id="testBtn">Run Tests</button>
+            
+            <div class="example">
+                <h3>Input Format</h3>
+                <p>First line: grid size (max X, max Y)</p>
+                <p>Then for each robot:</p>
+                <ul>
+                    <li>Position line: X Y Orientation (N, E, S, W)</li>
+                    <li>Instruction line: String of L, R, F commands</li>
+                </ul>
+            </div>
+            
+            <div class="example">
+                <h3>Sample Input</h3>
+                <pre>5 3
+1 1 E
+RFRFRFRF
+3 2 N
+FRRFLLFFRRFLL
+0 3 W
+LLFFFLFLFL</pre>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Output</h2>
+            <div id="output">Results will appear here...</div>
+            
+            <h2>Visualization</h2>
+            <div class="grid-container">
+                <div id="grid"></div>
+                <div class="coordinates">
+                    <span id="minCoords">0,0</span>
+                    <span id="maxCoords">0,0</span>
+                </div>
+            </div>
+            
+            <div class="instructions" id="instructionsContainer"></div>
+            <div class="status" id="status">Ready to simulate</div>
+        </div>
+
+        <div class="panel test-panel">
+            <h2>Test Results</h2>
+            <div id="testResults" class="test-results">Click "Run Tests" to see test results...</div>
+        </div>
+    </div>
+
+    <script>
+        class MartianRobot {
+            constructor(x, y, orientation, gridWidth, gridHeight) {
+                this.x = x;
+                this.y = y;
+                this.orientation = orientation;
+                this.gridWidth = gridWidth;
+                this.gridHeight = gridHeight;
+                this.lost = false;
+                this.path = [{x, y, orientation}];
+            }
+
+            static DIRECTIONS = ['N', 'E', 'S', 'W'];
+            static MOVEMENT = {
+                'N': { dx: 0, dy: 1 },
+                'E': { dx: 1, dy: 0 },
+                'S': { dx: 0, dy: -1 },
+                'W': { dx: -1, dy: 0 }
+            };
+
+            turnLeft() {
+                const currentIdx = MartianRobot.DIRECTIONS.indexOf(this.orientation);
+                this.orientation = MartianRobot.DIRECTIONS[(currentIdx + 3) % 4];
+                this.path.push({x: this.x, y: this.y, orientation: this.orientation});
+            }
+
+            turnRight() {
+                const currentIdx = MartianRobot.DIRECTIONS.indexOf(this.orientation);
+                this.orientation = MartianRobot.DIRECTIONS[(currentIdx + 1) % 4];
+                this.path.push({x: this.x, y: this.y, orientation: this.orientation});
+            }
+
+            moveForward(scentPoints) {
+                const { dx, dy } = MartianRobot.MOVEMENT[this.orientation];
+                const newX = this.x + dx;
+                const newY = this.y + dy;
+
+                // Check if the new position is within bounds
+                if (newX >= 0 && newX <= this.gridWidth && newY >= 0 && newY <= this.gridHeight) {
+                    this.x = newX;
+                    this.y = newY;
+                    this.path.push({x: this.x, y: this.y, orientation: this.orientation});
+                    return true;
+                } else {
+                    // Check if there's a scent at current position for this direction
+                    const scentKey = `${this.x},${this.y},${this.orientation}`;
+                    if (scentPoints.has(scentKey)) {
+                        // Scent prevents falling off
+                        return false;
+                    } else {
+                        // Robot falls off, leave scent
+                        this.lost = true;
+                        scentPoints.add(scentKey);
+                        return false;
+                    }
+                }
+            }
+
+            executeInstructions(instructions, scentPoints) {
+                for (const instruction of instructions) {
+                    if (this.lost) break;
+
+                    switch (instruction) {
+                        case 'L':
+                            this.turnLeft();
+                            break;
+                        case 'R':
+                            this.turnRight();
+                            break;
+                        case 'F':
+                            this.moveForward(scentPoints);
+                            break;
+                    }
+                }
+                return scentPoints;
+            }
+
+            getStatus() {
+                let status = `${this.x} ${this.y} ${this.orientation}`;
+                if (this.lost) status += ' LOST';
+                return status;
+            }
+        }
+
+        class MartianRobotsSimulator {
+            constructor() {
+                this.scentPoints = new Set();
+                this.robots = [];
+                this.results = [];
+            }
+
+            parseInput(inputData) {
+                const lines = inputData.split('\n').filter(line => line.trim() !== '');
+                
+                if (lines.length === 0) {
+                    throw new Error('No input data provided');
+                }
+
+                // First line: grid dimensions
+                const [gridWidth, gridHeight] = lines[0].trim().split(' ').map(Number);
+                
+                const robots = [];
+                let i = 1;
+                
+                while (i < lines.length) {
+                    // Robot position line
+                    const posParts = lines[i].trim().split(' ');
+                    const x = parseInt(posParts[0]);
+                    const y = parseInt(posParts[1]);
+                    const orientation = posParts[2];
+                    
+                    // Instructions line
+                    i++;
+                    if (i < lines.length) {
+                        const instructions = lines[i].trim();
+                        robots.push({ x, y, orientation, instructions });
+                    }
+                    i++;
+                }
+                
+                return { gridWidth, gridHeight, robots };
+            }
+
+            runSimulation(inputData) {
+                try {
+                    const { gridWidth, gridHeight, robots } = this.parseInput(inputData);
+                    this.scentPoints = new Set();
+                    this.robots = [];
+                    this.results = [];
+                    
+                    // Create and execute robots
+                    for (const robotData of robots) {
+                        const robot = new MartianRobot(
+                            robotData.x, 
+                            robotData.y, 
+                            robotData.orientation,
+                            gridWidth,
+                            gridHeight
+                        );
+                        this.robots.push(robot);
+                        this.scentPoints = robot.executeInstructions(robotData.instructions, this.scentPoints);
+                        this.results.push(robot.getStatus());
+                    }
+                    
+                    return this.results;
+                } catch (error) {
+                    throw new Error(`Error processing input: ${error.message}`);
+                }
+            }
+
+            getScentPoints() {
+                return Array.from(this.scentPoints).map(scent => {
+                    const [x, y, orientation] = scent.split(',');
+                    return { x: parseInt(x), y: parseInt(y), orientation };
+                });
+            }
+
+            getRobotPaths() {
+                return this.robots.map(robot => robot.path);
+            }
+        }
+
+        // DOM Elements
+        const inputTextarea = document.getElementById('input');
+        const outputDiv = document.getElementById('output');
+        const runBtn = document.getElementById('runBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const testBtn = document.getElementById('testBtn');
+        const testResultsDiv = document.getElementById('testResults');
+        const gridDiv = document.getElementById('grid');
+        const minCoordsSpan = document.getElementById('minCoords');
+        const maxCoordsSpan = document.getElementById('maxCoords');
+        const instructionsContainer = document.getElementById('instructionsContainer');
+        const statusDiv = document.getElementById('status');
+
+        // Create simulator instance
+        const simulator = new MartianRobotsSimulator();
+
+        // Initialize visualization
+        function initializeGrid(gridWidth, gridHeight) {
+            gridDiv.innerHTML = '';
+            gridDiv.style.display = 'grid';
+            gridDiv.style.gridTemplateColumns = `repeat(${gridWidth + 1}, 30px)`;
+            gridDiv.style.gridTemplateRows = `repeat(${gridHeight + 1}, 30px)`;
+            
+            // Create cells
+            for (let y = gridHeight; y >= 0; y--) {
+                for (let x = 0; x <= gridWidth; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.id = `cell-${x}-${y}`;
+                    cell.textContent = '';
+                    gridDiv.appendChild(cell);
+                }
+            }
+            
+            // Update coordinate labels
+            minCoordsSpan.textContent = `0,0`;
+            maxCoordsSpan.textContent = `${gridWidth},${gridHeight}`;
+        }
+
+        // Update grid with robot positions and scents
+        function updateGrid(robotPaths, scentPoints, currentStep) {
+            // Clear previous robot positions
+            const cells = document.querySelectorAll('.grid-cell');
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('robot', 'scent');
+            });
+            
+            // Mark scent points
+            scentPoints.forEach(scent => {
+                const cell = document.getElementById(`cell-${scent.x}-${scent.y}`);
+                if (cell) {
+                    cell.classList.add('scent');
+                }
+            });
+            
+            // Show robot positions up to current step
+            robotPaths.forEach((path, robotIndex) => {
+                const stepsToShow = Math.min(currentStep, path.length - 1);
+                if (stepsToShow >= 0) {
+                    const position = path[stepsToShow];
+                    const cell = document.getElementById(`cell-${position.x}-${position.y}`);
+                    if (cell) {
+                        cell.textContent = getDirectionSymbol(position.orientation);
+                        cell.classList.add('robot');
+                    }
+                }
+            });
+        }
+
+        function getDirectionSymbol(orientation) {
+            switch(orientation) {
+                case 'N': return '⬆';
+                case 'E': return '➡';
+                case 'S': return '⬇';
+                case 'W': return '⬅';
+                default: return '•';
+            }
+        }
+
+        function displayInstructions(instructions, currentIndex) {
+            instructionsContainer.innerHTML = '';
+            
+            instructions.split('').forEach((instruction, index) => {
+                const instructionEl = document.createElement('div');
+                instructionEl.className = `instruction ${index === currentIndex ? 'active' : ''}`;
+                instructionEl.textContent = instruction;
+                instructionsContainer.appendChild(instructionEl);
+            });
+        }
+
+        // Run simulation and display results
+        function runSimulation() {
+            const inputData = inputTextarea.value.trim();
+            
+            if (!inputData) {
+                outputDiv.textContent = 'Please provide input data.';
+                return;
+            }
+            
+            try {
+                const results = simulator.runSimulation(inputData);
+                outputDiv.innerHTML = results.map(result => {
+                    if (result.includes('LOST')) {
+                        return `<span class="lost">${result}</span>`;
+                    }
+                    return result;
+                }).join('\n');
+                
+                // Get simulation data for visualization
+                const { gridWidth, gridHeight } = simulator.parseInput(inputData);
+                initializeGrid(gridWidth, gridHeight);
+                
+                const robotPaths = simulator.getRobotPaths();
+                const scentPoints = simulator.getScentPoints();
+                
+                // Show final state
+                updateGrid(robotPaths, scentPoints, Number.MAX_SAFE_INTEGER);
+                
+                statusDiv.textContent = `Simulation complete. Processed ${simulator.robots.length} robots.`;
+                
+            } catch (error) {
+                outputDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Reset simulation
+        function resetSimulation() {
+            inputTextarea.value = `5 3
+1 1 E
+RFRFRFRF
+3 2 N
+FRRFLLFFRRFLL
+0 3 W
+LLFFFLFLFL`;
+            outputDiv.textContent = 'Results will appear here...';
+            gridDiv.innerHTML = '';
+            instructionsContainer.innerHTML = '';
+            statusDiv.textContent = 'Ready to simulate';
+            testResultsDiv.textContent = 'Click "Run Tests" to see test results...';
+        }
+
+        // Run comprehensive tests
+        function runTests() {
+            const testCases = [
+                {
+                    name: "Sample Input",
+                    input: `5 3
+1 1 E
+RFRFRFRF
+3 2 N
+FRRFLLFFRRFLL
+0 3 W
+LLFFFLFLFL`,
+                    expected: ["1 1 E", "3 3 N LOST", "2 3 S"]
+                },
+                {
+                    name: "Simple Movement",
+                    input: `3 3
+0 0 N
+FFFF`,
+                    expected: ["0 3 N"]
+                },
+                {
+                    name: "Boundary Fall",
+                    input: `2 2
+0 0 N
+FFFF`,
+                    expected: ["0 2 N LOST"]
+                },
+                {
+                    name: "Scent Prevention",
+                    input: `2 2
+0 0 N
+FFFF
+0 0 N
+FFFF`,
+                    expected: ["0 2 N LOST", "0 2 N"]
+                },
+                {
+                    name: "Rotation Test",
+                    input: `1 1
+0 0 N
+RRRRLLLL`,
+                    expected: ["0 0 N"]
+                }
+            ];
+
+            let testResults = "<h3>Test Results:</h3>";
+            let passedCount = 0;
+            let failedCount = 0;
+
+            testCases.forEach((testCase, index) => {
+                try {
+                    const testSimulator = new MartianRobotsSimulator();
+                    const results = testSimulator.runSimulation(testCase.input);
+                    
+                    const passed = JSON.stringify(results) === JSON.stringify(testCase.expected);
+                    
+                    if (passed) {
+                        passedCount++;
+                        testResults += `<p class="test-pass">✅ Test ${index + 1}: ${testCase.name} - PASSED</p>`;
+                    } else {
+                        failedCount++;
+                        testResults += `<p class="test-fail">❌ Test ${index + 1}: ${testCase.name} - FAILED</p>`;
+                        testResults += `<p>Expected: ${testCase.expected.join(' | ')}</p>`;
+                        testResults += `<p>Got: ${results.join(' | ')}</p>`;
+                    }
+                } catch (error) {
+                    failedCount++;
+                    testResults += `<p class="test-fail">❌ Test ${index + 1}: ${testCase.name} - ERROR: ${error.message}</p>`;
+                }
+            });
+
+            testResults += `<h3>Summary: ${passedCount} passed, ${failedCount} failed out of ${testCases.length} tests</h3>`;
+            testResultsDiv.innerHTML = testResults;
+        }
+
+        // Event listeners
+        runBtn.addEventListener('click', runSimulation);
+        resetBtn.addEventListener('click', resetSimulation);
+        testBtn.addEventListener('click', runTests);
+
+        // Initialize with sample data
+        resetSimulation();
+    </script>
+</body>
+</html>
